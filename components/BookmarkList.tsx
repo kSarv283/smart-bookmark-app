@@ -21,6 +21,10 @@ export default function BookmarkList({ initialBookmarks }: { initialBookmarks: B
     const supabase = createClient()
 
     useEffect(() => {
+        setBookmarks(initialBookmarks)
+    }, [initialBookmarks])
+
+    useEffect(() => {
         const channel = supabase
             .channel('realtime-bookmarks')
             .on(
@@ -91,36 +95,38 @@ export default function BookmarkList({ initialBookmarks }: { initialBookmarks: B
     }
 
     return (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {bookmarks.map((bookmark) => (
                 <div
                     key={bookmark.id}
-                    className="flex flex-col justify-between rounded-lg border border-gray-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md"
+                    className="group relative flex flex-col justify-between rounded-2xl border border-white/50 bg-white/60 p-6 shadow-sm backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-indigo-500/10"
                 >
                     {editingId === bookmark.id ? (
-                        <div className="space-y-3">
+                        <div className="space-y-4 animate-in fade-in zoom-in-95 duration-200">
+                            {/* ... editing mode inputs ... */}
                             <div>
-                                <label className="text-xs font-medium text-gray-500">Title</label>
+                                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Title</label>
                                 <input
                                     type="text"
                                     value={editTitle}
                                     onChange={(e) => setEditTitle(e.target.value)}
-                                    className="w-full rounded-md border border-gray-300 px-2 py-1 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                                    className="mt-1 w-full rounded-lg border-gray-200 bg-white/50 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                    autoFocus
                                 />
                             </div>
                             <div>
-                                <label className="text-xs font-medium text-gray-500">URL</label>
+                                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">URL</label>
                                 <input
                                     type="url"
                                     value={editUrl}
                                     onChange={(e) => setEditUrl(e.target.value)}
-                                    className="w-full rounded-md border border-gray-300 px-2 py-1 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                                    className="mt-1 w-full rounded-lg border-gray-200 bg-white/50 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-indigo-500"
                                 />
                             </div>
                             <div className="flex justify-end space-x-2 pt-2">
                                 <button
                                     onClick={cancelEditing}
-                                    className="rounded-md p-1.5 text-gray-500 hover:bg-gray-100"
+                                    className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 transition-colors"
                                     title="Cancel"
                                     disabled={loading}
                                 >
@@ -128,7 +134,7 @@ export default function BookmarkList({ initialBookmarks }: { initialBookmarks: B
                                 </button>
                                 <button
                                     onClick={handleUpdate}
-                                    className="rounded-md bg-indigo-600 p-1.5 text-white hover:bg-indigo-700 disabled:opacity-50"
+                                    className="rounded-lg bg-indigo-600 p-2 text-white hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-500/20"
                                     title="Save"
                                     disabled={loading}
                                 >
@@ -138,34 +144,37 @@ export default function BookmarkList({ initialBookmarks }: { initialBookmarks: B
                         </div>
                     ) : (
                         <>
-                            <div>
-                                <h3 className="mb-2 text-lg font-semibold text-gray-900 truncate" title={bookmark.title}>
-                                    {bookmark.title}
-                                </h3>
+                            <div className="mb-4">
+                                <div className="flex items-start justify-between">
+                                    <h3 className="text-lg font-bold text-gray-900 line-clamp-1 w-full mr-2" title={bookmark.title}>
+                                        {bookmark.title}
+                                    </h3>
+                                </div>
                                 <a
                                     href={bookmark.url}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="mb-4 flex items-center text-sm text-indigo-600 hover:text-indigo-800"
+                                    className="mt-1 flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-800 transition-colors"
                                 >
-                                    <ExternalLink className="mr-1 h-3 w-3" />
-                                    <span className="truncate">{bookmark.url}</span>
+                                    <ExternalLink className="mr-1.5 h-3.5 w-3.5" />
+                                    <span className="truncate">{new URL(bookmark.url).hostname}</span>
                                 </a>
                             </div>
-                            <div className="mt-4 flex justify-end space-x-2">
+
+                            <div className="mt-auto flex items-center justify-end space-x-1 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
                                 <button
                                     onClick={() => startEditing(bookmark)}
-                                    className="rounded-full p-2 text-gray-400 hover:bg-gray-100 hover:text-indigo-600"
+                                    className="rounded-full p-2 text-gray-400 hover:bg-indigo-50 hover:text-indigo-600 transition-colors"
                                     title="Edit bookmark"
                                 >
-                                    <Pencil className="h-5 w-5" />
+                                    <Pencil className="h-4 w-4" />
                                 </button>
                                 <button
                                     onClick={() => handleDelete(bookmark.id)}
-                                    className="rounded-full p-2 text-gray-400 hover:bg-red-50 hover:text-red-600"
+                                    className="rounded-full p-2 text-gray-400 hover:bg-red-50 hover:text-red-600 transition-colors"
                                     title="Delete bookmark"
                                 >
-                                    <Trash2 className="h-5 w-5" />
+                                    <Trash2 className="h-4 w-4" />
                                 </button>
                             </div>
                         </>
@@ -173,8 +182,9 @@ export default function BookmarkList({ initialBookmarks }: { initialBookmarks: B
                 </div>
             ))}
             {bookmarks.length === 0 && (
-                <div className="col-span-full text-center text-gray-500 py-10">
-                    No bookmarks yet. Add one above!
+                <div className="col-span-full flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-gray-200 bg-white/30 py-20 text-center">
+                    <p className="text-lg font-medium text-gray-500">No bookmarks yet</p>
+                    <p className="text-sm text-gray-400">Add your first one above!</p>
                 </div>
             )}
         </div>
