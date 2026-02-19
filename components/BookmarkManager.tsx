@@ -1,7 +1,7 @@
 'use client'
 
 import { createClient } from '@/lib/supabase/client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Plus, Loader2, Trash2, ExternalLink, Pencil, X, Check } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
@@ -26,7 +26,8 @@ export default function BookmarkManager({ initialBookmarks }: { initialBookmarks
     const [editUrl, setEditUrl] = useState('')
     const [isUpdating, setIsUpdating] = useState(false)
 
-    const supabase = createClient()
+    // Use useMemo to ensure the client is only created once and has a stable reference
+    const supabase = useMemo(() => createClient(), [])
     const router = useRouter()
 
     // Sync with initialBookmarks when they change (e.g. on soft navigation/revalidate)
@@ -41,7 +42,8 @@ export default function BookmarkManager({ initialBookmarks }: { initialBookmarks
             .on(
                 'postgres_changes',
                 { event: '*', schema: 'public', table: 'bookmarks' },
-                (payload) => {
+                (payload: any) => {
+                    console.log('Realtime change received:', payload)
                     if (payload.eventType === 'INSERT') {
                         // Avoid duplicate insert if we already added it optimistically
                         setBookmarks((prev) => {
@@ -55,7 +57,9 @@ export default function BookmarkManager({ initialBookmarks }: { initialBookmarks
                     }
                 }
             )
-            .subscribe()
+            .subscribe((status: string) => {
+                console.log('Realtime subscription status:', status)
+            })
 
         return () => {
             supabase.removeChannel(channel)
