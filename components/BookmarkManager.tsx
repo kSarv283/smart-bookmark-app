@@ -29,6 +29,7 @@ export default function BookmarkManager({ initialBookmarks }: { initialBookmarks
     // Use useMemo to ensure the client is only created once and has a stable reference
     const supabase = useMemo(() => createClient(), [])
     const router = useRouter()
+    const [status, setStatus] = useState<'CONNECTING' | 'SUBSCRIBED' | 'CLOSED' | 'CHANNEL_ERROR'>('CONNECTING')
 
     // Sync with initialBookmarks when they change (e.g. on soft navigation/revalidate)
     useEffect(() => {
@@ -59,6 +60,7 @@ export default function BookmarkManager({ initialBookmarks }: { initialBookmarks
             )
             .subscribe((status: string) => {
                 console.log('Realtime subscription status:', status)
+                setStatus(status as any)
             })
 
         return () => {
@@ -175,6 +177,21 @@ export default function BookmarkManager({ initialBookmarks }: { initialBookmarks
 
     return (
         <div className="space-y-8">
+            {/* Connection Status Indicator */}
+            <div className="flex justify-end">
+                <div className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${status === 'SUBSCRIBED'
+                        ? 'bg-green-50 text-green-700 border-green-200'
+                        : status === 'CHANNEL_ERROR' || status === 'CLOSED'
+                            ? 'bg-red-50 text-red-700 border-red-200'
+                            : 'bg-yellow-50 text-yellow-700 border-yellow-200'
+                    }`}>
+                    <span className={`w-2 h-2 mr-2 rounded-full ${status === 'SUBSCRIBED' ? 'bg-green-500' :
+                            status === 'CHANNEL_ERROR' || status === 'CLOSED' ? 'bg-red-500' : 'bg-yellow-500'
+                        }`}></span>
+                    {status}
+                </div>
+            </div>
+
             {/* Add Bookmark Form */}
             <form onSubmit={handleAdd} className="relative z-10 mx-auto max-w-4xl transform transition-all hover:scale-[1.01]">
                 <div className="flex flex-col gap-2 rounded-2xl border border-white/50 bg-white/70 p-3 shadow-2xl backdrop-blur-xl sm:flex-row sm:items-center">
