@@ -4,6 +4,9 @@ import AddBookmark from '@/components/AddBookmark'
 import BookmarkList from '@/components/BookmarkList'
 import UserProfile from '@/components/UserProfile'
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 export default async function Home() {
   const supabase = await createClient()
 
